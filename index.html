@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WinMeet</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffb547'/%3E%3Cpath d='M7 10l4.2 12L16 13.5 20.8 22 25 10' fill='none' stroke='%23141c26' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&family=Noto+Sans+Thai:wght@400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ LOBBY ============ -->
+<section id="lobby">
+  <header>
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#ffb547"/><path d="M7 10l4.2 12L16 13.5 20.8 22 25 10" fill="none" stroke="#141c26" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      WinMeet
+    </a>
+  </header>
+  <div class="lb-main">
+    <div class="lb-preview">
+      <div class="pv">
+        <video id="pvVideo" autoplay muted playsinline></video>
+        <div class="pv-off" id="pvOff" hidden>Camera is off</div>
+        <div class="pv-ctl">
+          <button class="cb" id="pvMic" type="button"></button>
+          <button class="cb" id="pvCam" type="button"></button>
+        </div>
+      </div>
+      <div class="pv-devs">
+        <label>Camera<select id="camSel"></select></label>
+        <label>Microphone<select id="micSel"></select></label>
+      </div>
+      <p class="note" id="pvNote" hidden></p>
+    </div>
+    <div class="lb-actions">
+      <h1>Meet face to face, right from the browser.</h1>
+      <p class="lead">Start a call, send the link, and you're talking. No accounts and nothing to install.</p>
+      <label class="field">Your name
+        <input type="text" id="nameIn" maxlength="30" autocomplete="nickname" placeholder="What should others call you?">
+      </label>
+      <button class="btn btn-primary" id="newBtn" type="button">New meeting</button>
+      <div class="or"><span>or join with a code</span></div>
+      <form class="joinrow" id="joinForm">
+        <input type="text" id="codeIn" placeholder="abc-defg-hij" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Meeting code">
+        <button class="btn btn-quiet" id="joinBtn" type="submit" disabled>Join</button>
+      </form>
+      <p class="msg" id="formMsg" role="status"></p>
+      <p class="fine">Calls run directly between browsers. Nothing is recorded or stored on a server.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MEETING ============ -->
+<section id="meeting" hidden>
+  <header class="top">
+    <span class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#ffb547"/><path d="M7 10l4.2 12L16 13.5 20.8 22 25 10" fill="none" stroke="#141c26" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      WinMeet
+    </span>
+    <div class="code-chip"><span id="mtgCode"></span><button type="button" id="copyLink"><svg class="ico" viewBox="0 0 24 24" data-icon="copy"></svg>Copy invite</button></div>
+    <span class="spacer"></span>
+    <span class="rec-pill" id="recPill" hidden>Recording</span>
+    <span id="elapsed">0:00</span>
+  </header>
+
+  <div class="body">
+    <main class="stage">
+      <div id="grid"></div>
+      <div class="captions" id="captions" hidden aria-live="polite"></div>
+    </main>
+    <aside class="panel" id="panel" hidden>
+      <div class="ptabs" role="tablist">
+        <button class="tab" role="tab" id="tabChat" aria-selected="true" type="button">Chat</button>
+        <button class="tab" role="tab" id="tabPeople" aria-selected="false" type="button">People</button>
+        <button class="x" id="panelClose" type="button" aria-label="Close panel"><svg class="ico" viewBox="0 0 24 24" data-icon="close"></svg></button>
+      </div>
+      <div class="pane" id="paneChat">
+        <div id="chatList" aria-live="polite"></div>
+        <form class="chatform" id="chatForm">
+          <input type="text" id="chatIn" maxlength="600" placeholder="Send a message" autocomplete="off" aria-label="Message">
+          <button class="cb" type="submit" aria-label="Send"><svg class="ico" viewBox="0 0 24 24" data-icon="send"></svg></button>
+        </form>
+      </div>
+      <div class="pane" id="panePeople" hidden>
+        <div class="phead"><span id="peopleCount"></span><button class="btn btn-quiet" id="muteAll" type="button" hidden>Mute everyone</button></div>
+        <ul id="peopleList"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="controls">
+    <button class="cb" id="mic" type="button"></button>
+    <button class="cb" id="cam" type="button"></button>
+    <button class="cb" id="caps" type="button" aria-pressed="false" aria-label="Turn on captions" title="Captions (C)"><svg class="ico" viewBox="0 0 24 24" data-icon="cc"></svg></button>
+    <button class="cb" id="react" type="button" data-pop aria-label="Send a reaction" title="Reactions"><span class="emo">😊</span></button>
+    <button class="cb" id="present" type="button" aria-pressed="false" aria-label="Present your screen" title="Present your screen"><svg class="ico" viewBox="0 0 24 24" data-icon="screen"></svg></button>
+    <button class="cb" id="hand" type="button" aria-pressed="false" aria-label="Raise hand" title="Raise hand (H)"><span class="emo">✋</span></button>
+    <button class="cb" id="rec" type="button" aria-pressed="false" aria-label="Record meeting" title="Record on this device"><svg class="ico" viewBox="0 0 24 24" data-icon="record"></svg></button>
+    <button class="cb" id="more" type="button" data-pop aria-label="More options" title="More options"><svg class="ico" viewBox="0 0 24 24" data-icon="more"></svg></button>
+    <span class="sep"></span>
+    <button class="cb" id="people" type="button" aria-label="People" title="People"><svg class="ico" viewBox="0 0 24 24" data-icon="people"></svg></button>
+    <button class="cb" id="chat" type="button" aria-label="Chat" title="Chat"><svg class="ico" viewBox="0 0 24 24" data-icon="chat"></svg><span class="badge" id="chatBadge" hidden>0</span></button>
+    <button class="cb leave" id="leave" type="button" data-pop aria-label="Leave meeting" title="Leave meeting"><svg class="ico" viewBox="0 0 24 24" data-icon="leave"></svg></button>
+  </footer>
+</section>
+
+<!-- popovers -->
+<div class="pop emoji" id="popReact" hidden role="menu">
+  <button type="button" data-e="👍" aria-label="Thumbs up">👍</button>
+  <button type="button" data-e="👏" aria-label="Clap">👏</button>
+  <button type="button" data-e="❤️" aria-label="Heart">❤️</button>
+  <button type="button" data-e="😂" aria-label="Laugh">😂</button>
+  <button type="button" data-e="😮" aria-label="Surprised">😮</button>
+  <button type="button" data-e="🎉" aria-label="Celebrate">🎉</button>
+</div>
+<div class="pop menu" id="popMore" hidden>
+  <button type="button" id="mFull">Full screen</button>
+  <button type="button" id="mMirror">Mirror my video <span id="mMirrorState">On</span></button>
+  <label>Caption language
+    <select id="capLang">
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="th-TH">ไทย</option>
+      <option value="ja-JP">日本語</option>
+      <option value="zh-CN">中文 (普通话)</option>
+      <option value="es-ES">Español</option>
+      <option value="fr-FR">Français</option>
+      <option value="de-DE">Deutsch</option>
+    </select>
+  </label>
+</div>
+<div class="pop menu" id="popLeave" hidden>
+  <button type="button" id="lvOnly">Leave meeting</button>
+  <button type="button" id="lvAll" class="danger">End meeting for everyone</button>
+  <p class="hint">If you leave without ending it, others stay connected but no one new can join.</p>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
